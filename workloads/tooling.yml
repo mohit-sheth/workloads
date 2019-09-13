@@ -108,7 +108,8 @@
 
     - name: Label two worker nodes
       shell: |
-        oc get nodes -l node-role.kubernetes.io/worker= --no-headers | head -n 2 | awk '{print $1}' | xargs -I % oc label nodes % --overwrite pbench_agent=true
+        oc get nodes -l failure-domain.beta.kubernetes.io/zone=us-west-2a | grep worker | head -n 1 | awk '{print $1}' | xargs -I % oc label nodes % --overwrite pbench_agent=true
+        oc get nodes -l failure-domain.beta.kubernetes.io/zone=us-west-2b | grep worker | head -n 1 | awk '{print $1}' | xargs -I % oc label nodes % --overwrite pbench_agent=true
 
     - name: Create kubeconfig secret
       shell: |
