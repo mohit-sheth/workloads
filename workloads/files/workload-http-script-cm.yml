@@ -641,7 +641,7 @@ data:
 
       if test "${PBENCH_MOVE_RESULTS}" = true ; then
         echo "Starting pbench-move-results on `hostname` to `pbench-move-results --show-server`"
-        pbench-move-results --prefix="http-$now-${HTTP_TEST_SUFFIX}" 2>&1
+        pbench-copy-results --prefix="http-$now-${HTTP_TEST_SUFFIX}" 2>&1
       fi
     }
 
