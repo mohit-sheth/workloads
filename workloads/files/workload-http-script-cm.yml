@@ -41,6 +41,7 @@ data:
 
     # Test Configuration
     log "Configuring HTTP test"
+    set -x
     echo $GSHEET_KEY > /tmp/gsheet_key.json
     test_dir=/tmp/http-ci-tests
     mkdir -p $test_dir/content/quickstarts/{nginx,stress}
@@ -641,7 +642,7 @@ data:
 
       if test "${PBENCH_MOVE_RESULTS}" = true ; then
         echo "Starting pbench-move-results on `hostname` to `pbench-move-results --show-server`"
-        pbench-move-results --prefix="http-$now-${HTTP_TEST_SUFFIX}" 2>&1
+        pbench-copy-results --prefix="http-$now-${HTTP_TEST_SUFFIX}" 2>&1
       fi
     }
 
