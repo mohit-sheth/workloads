@@ -570,6 +570,7 @@ data:
       test "${HTTP_TEST_SERVER_RESULTS}" || return 0
 
       rm -rf $out_dir
+      set -x
       for dir in $(find $results_dir -maxdepth 1 -type d -name *[0-9]r-*[0-9]cpt-*[0-9]d_ms-*[0-9]ka-ytlsru-*s-* | LC_COLLATE=C sort) ; do
         set $(echo $dir | sed -E 's|^.*[^0-9]([0-9]{1,})r-([0-9]{1,})cpt-([0-9]{1,})d_ms-([0-9]{1,})ka-([yn])tlsru-([0-9]{1,})s-([^-]*)-.*$|\1 \2 \3 \4 \5 \6 \7|')
         routes_f=$1
@@ -587,6 +588,7 @@ data:
         total_latency_95=$(awk 'BEGIN{i=0} /^200/ {i=$3>i?$3:i} END{print i}' $dir/mb-*/graphs/total_latency_pctl.txt 2>/dev/null)
         target_dir=$out_dir/processed-$route_term/${routes_f}r/${conns_per_thread_f}cpt/${ka_f}ka
         mkdir -p $target_dir
+        set -x
         if test "$total_rps" != 0 ; then
           printf "%s\n" "$total_rps" >> $target_dir/$file_total_rps
           export -p routes=$routes_f
