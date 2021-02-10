@@ -12,6 +12,8 @@
   vars:
     workload_job: "http"
     workload_job_privileged: "{{enable_pbench_agents}}"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_file }}"
   tasks:
     - name: Create scale-ci-tooling directory
       file:
@@ -62,14 +64,14 @@
 
     - name: Check if scale-ci-tooling namespace exists
       shell: |
-        oc get project scale-ci-tooling
+        oc get project scale-ci-tooling --kubeconfig {{ kubeconfig_file }}
       ignore_errors: true
       changed_when: false
       register: scale_ci_tooling_ns_exists
 
     - name: Ensure any stale scale-ci-http job is deleted
       shell: |
-        oc delete job scale-ci-http -n scale-ci-tooling
+        oc delete job scale-ci-http -n scale-ci-tooling --kubeconfig {{ kubeconfig_file }}
       register: scale_ci_tooling_project
       failed_when: scale_ci_tooling_project.rc == 0
       until: scale_ci_tooling_project.rc == 1
@@ -81,42 +83,42 @@
       block:
         - name: Create tooling namespace
           shell: |
-            oc create -f {{ansible_user_dir}}/scale-ci-tooling/scale-ci-tooling-ns.yml
+            oc create -f {{ansible_user_dir}}/scale-ci-tooling/scale-ci-tooling-ns.yml --kubeconfig {{ kubeconfig_file }}
 
         - name: Create tooling service account
           shell: |
-            oc create serviceaccount useroot -n scale-ci-tooling
-            oc adm policy add-scc-to-user privileged -z useroot -n scale-ci-tooling
+            oc create serviceaccount useroot -n scale-ci-tooling --kubeconfig {{ kubeconfig_file }}
+            oc adm policy add-scc-to-user privileged -z useroot -n scale-ci-tooling --kubeconfig {{ kubeconfig_file }}
           when: enable_pbench_agents
       when: scale_ci_tooling_ns_exists.rc != 0
 
     - name: Create/replace kubeconfig secret
       shell: |
-        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/kubeconfig-secret.yml"
+        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/kubeconfig-secret.yml" --kubeconfig {{ kubeconfig_file }}
 
     - name: Create/replace the pbench configmap
       shell: |
-        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/pbench-cm.yml"
+        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/pbench-cm.yml" --kubeconfig {{ kubeconfig_file }}
 
     - name: Create/replace pbench ssh secret
       shell: |
-        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/pbench-ssh-secret.yml"
+        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/pbench-ssh-secret.yml" --kubeconfig {{ kubeconfig_file }}
 
     - name: Create/replace workload script configmap
       shell: |
-        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/workload-http-script-cm.yml"
+        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/workload-http-script-cm.yml" --kubeconfig {{ kubeconfig_file }}
 
     - name: Create/replace workload script environment configmap
       shell: |
-        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/workload-http-env.yml"
+        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/workload-http-env.yml" --kubeconfig {{ kubeconfig_file }}
 
     - name: Create/replace workload job to that runs workload script
       shell: |
-        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/workload-job.yml"
+        oc replace --force -n scale-ci-tooling -f "{{ansible_user_dir}}/scale-ci-tooling/workload-job.yml" --kubeconfig {{ kubeconfig_file }}
 
     - name: Poll until job pod is running
       shell: |
-        oc get pods --selector=job-name=scale-ci-http -n scale-ci-tooling -o json
+        oc get pods --selector=job-name=scale-ci-http -n scale-ci-tooling -o json --kubeconfig {{ kubeconfig_file }}
       register: pod_json
       retries: 60
       delay: 2
@@ -124,7 +126,7 @@
 
     - name: Poll until job is complete
       shell: |
-        oc get job scale-ci-http -n scale-ci-tooling -o json
+        oc get job scale-ci-http -n scale-ci-tooling -o json --kubeconfig {{ kubeconfig_file }}
       register: job_json
       retries: "{{job_completion_poll_attempts}}"
       delay: 10
